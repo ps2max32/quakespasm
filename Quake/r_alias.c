@@ -327,6 +327,114 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, lerpdata_t lerpdata)
 
 	vertcolor[3] = entalpha; //never changes, so there's no need to put this inside the loop
 
+#ifdef __PS2__
+	/* PS2: the model's strips and fans in arrays, lerped and shaded here,
+	   drawn in one call (glMultiModeDrawArraysIBM), not four GL calls a
+	   vertex */
+	if (!r_drawflat_cheatsafe)
+	{
+#define PS2_MAX_CMDV 4096
+#define PS2_MAX_PRIMS 512
+		static struct { float xyz[3], st[2]; byte c[4]; } buf[PS2_MAX_CMDV];
+		static GLenum pmode[PS2_MAX_PRIMS];
+		static GLint pfirst[PS2_MAX_PRIMS];
+		static GLsizei pcount[PS2_MAX_PRIMS];
+		int nv = 0, np = 0;
+		byte a8 = (byte)CLAMP(0, (int)(entalpha * 255.0f + 0.5f), 255);
+		float lc[3];
+		int k;
+
+		/* glColor's float to byte, as libgl makes it (0..1 to 0..255) */
+		for (k = 0; k < 3; k++)
+			lc[k] = lightcolor[k] * 255.0f;
+		GL_BindBuffer (GL_ARRAY_BUFFER, 0);
+		glEnableClientState (GL_VERTEX_ARRAY);
+		glVertexPointer (3, GL_FLOAT, sizeof(buf[0]), buf[0].xyz);
+		glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer (2, GL_FLOAT, sizeof(buf[0]), buf[0].st);
+		if (mtexenabled)
+		{
+			GL_ClientActiveTextureFunc (GL_TEXTURE1_ARB);
+			glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+			glTexCoordPointer (2, GL_FLOAT, sizeof(buf[0]), buf[0].st);
+			GL_ClientActiveTextureFunc (GL_TEXTURE0_ARB);
+		}
+		if (shading)
+		{
+			glEnableClientState (GL_COLOR_ARRAY);
+			glColorPointer (4, GL_UNSIGNED_BYTE, sizeof(buf[0]), buf[0].c);
+		}
+		while (1)
+		{
+			GLenum mode = GL_TRIANGLE_STRIP;
+
+			count = *commands++;
+			if (!count)
+				break;
+			if (count < 0)
+			{
+				count = -count;
+				mode = GL_TRIANGLE_FAN;
+			}
+			if (nv + count > PS2_MAX_CMDV || np == PS2_MAX_PRIMS)
+			{
+				glMultiModeDrawArraysIBM (pmode, pfirst, pcount, np, sizeof(GLenum));
+				nv = np = 0;
+			}
+			pmode[np] = mode, pfirst[np] = nv, pcount[np] = count;
+			np++;
+			do
+			{
+				float d;
+
+				buf[nv].st[0] = ((float *)commands)[0];
+				buf[nv].st[1] = ((float *)commands)[1];
+				commands += 2;
+				if (lerping)
+				{
+					d = shadedots[verts1->lightnormalindex]*iblend + shadedots[verts2->lightnormalindex]*blend;
+					buf[nv].xyz[0] = verts1->v[0]*iblend + verts2->v[0]*blend;
+					buf[nv].xyz[1] = verts1->v[1]*iblend + verts2->v[1]*blend;
+					buf[nv].xyz[2] = verts1->v[2]*iblend + verts2->v[2]*blend;
+					verts2++;
+				}
+				else
+				{
+					d = shadedots[verts1->lightnormalindex];
+					buf[nv].xyz[0] = verts1->v[0];
+					buf[nv].xyz[1] = verts1->v[1];
+					buf[nv].xyz[2] = verts1->v[2];
+				}
+				verts1++;
+				if (shading)
+				{
+					for (k = 0; k < 3; k++)
+					{
+						float c = d * lc[k];
+						buf[nv].c[k] = c <= 0 ? 0 : c >= 255 ? 255 : (byte)(int)c;
+					}
+					buf[nv].c[3] = a8;
+				}
+				nv++;
+			} while (--count);
+		}
+		if (np)
+			glMultiModeDrawArraysIBM (pmode, pfirst, pcount, np, sizeof(GLenum));
+		glDisableClientState (GL_VERTEX_ARRAY);
+		glDisableClientState (GL_TEXTURE_COORD_ARRAY);
+		if (mtexenabled)
+		{
+			GL_ClientActiveTextureFunc (GL_TEXTURE1_ARB);
+			glDisableClientState (GL_TEXTURE_COORD_ARRAY);
+			GL_ClientActiveTextureFunc (GL_TEXTURE0_ARB);
+		}
+		if (shading)
+			glDisableClientState (GL_COLOR_ARRAY);
+		rs_aliaspasses += paliashdr->numtris;
+		return;
+	}
+#endif
+
 	while (1)
 	{
 		// get the vertex count and primitive type
