@@ -43,6 +43,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #undef	max
 
 #if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L))
+#ifdef __PS2__
+/* double is float (q_stdinc.h) */
+#define GENERIC_TYPES(x, separator) \
+	x(int, i) separator \
+	x(unsigned int, u) separator \
+	x(long, l) separator \
+	x(unsigned long, ul) separator \
+	x(long long, ll) separator \
+	x(unsigned long long, ull) separator \
+	x(float, f)
+#else
 #define GENERIC_TYPES(x, separator) \
 	x(int, i) separator \
 	x(unsigned int, u) separator \
@@ -52,6 +63,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 	x(unsigned long long, ull) separator \
 	x(float, f) separator \
 	x(double, d)
+#endif
 
 #define COMMA ,
 #define NO_COMMA

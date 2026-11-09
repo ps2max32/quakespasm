@@ -255,4 +255,13 @@ typedef ptrdiff_t	ssize_t;
 
 /*==========================================================================*/
 
+#ifdef __PS2__
+/* PS2: the FPU has single precision only, a double is a library call; the
+   engine's doubles (times: the protocol sends them as floats anyway) are
+   floats. After the system headers and the GL ones (SDL.h: libgl's
+   GLdouble stays a double), so the C library's prototypes are kept */
+#include "SDL.h"
+#define double float
+#endif
+
 #endif	/* QSTDINC_H */

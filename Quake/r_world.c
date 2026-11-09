@@ -797,6 +797,14 @@ void R_DrawLightmapChains (void)
 		GL_Bind (lightmaps[i].texture);
 		for (p = lightmaps[i].polys; p; p=p->chain)
 		{
+#ifdef __PS2__
+			{
+				extern void PS2_DrawPoly (glpoly_t *p, int st);
+				PS2_DrawPoly (p, 5);
+				rs_brushpasses++;
+				continue;
+			}
+#endif
 			glBegin (GL_POLYGON);
 			v = p->verts[0];
 			for (j=0 ; j<p->numverts ; j++, v+= VERTEXSIZE)
@@ -1177,7 +1185,15 @@ void R_DrawTextureChains (qmodel_t *model, entity_t *ent, texchain_t chain)
 
 	if (gl_overbright.value)
 	{
+#ifdef __PS2__
+		/* PS2: case 3, as GLQuake: libgl draws a second texture unit as a
+		   second pass anyway, and case 1 binds each surface's lightmap
+		   (two GS state changes a surface); case 3 draws the lightmaps
+		   grouped by lightmap, the 2x modulate blend as Cd * As (2x) */
+		if (0)
+#else
 		if (gl_texture_env_combine && gl_mtexable) //case 1: texture and lightmap in one pass, overbright using texture combiners
+#endif
 		{
 			GL_EnableMultitexture ();
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);

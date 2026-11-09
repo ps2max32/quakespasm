@@ -79,11 +79,32 @@ texture_t *R_TextureAnimation (texture_t *base, int frame)
 DrawGLPoly
 ================
 */
+#ifdef __PS2__
+/* PS2: a polygon as one glDrawArrays (GL_POLYGON) of its own vertices
+   (libgl culls and clips it whole), its texture coordinates at st (3 the
+   texture's, 5 the lightmap's): not two GL calls a vertex */
+void PS2_DrawPoly (glpoly_t *p, int st)
+{
+	GL_BindBuffer (GL_ARRAY_BUFFER, 0);
+	glEnableClientState (GL_VERTEX_ARRAY);
+	glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+	glVertexPointer (3, GL_FLOAT, VERTEXSIZE * sizeof(float), p->verts[0]);
+	glTexCoordPointer (2, GL_FLOAT, VERTEXSIZE * sizeof(float), &p->verts[0][st]);
+	glDrawArrays (GL_POLYGON, 0, p->numverts);
+	glDisableClientState (GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState (GL_VERTEX_ARRAY);
+}
+#endif
+
 void DrawGLPoly (glpoly_t *p)
 {
 	float	*v;
 	int		i;
 
+#ifdef __PS2__
+	PS2_DrawPoly (p, 3);
+	return;
+#endif
 	glBegin (GL_POLYGON);
 	v = p->verts[0];
 	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)

@@ -22,7 +22,7 @@ textures up to 256), screen (640 x 512) and command line, time 1/50 s a frame. I
 
 | | |
 |---|---|
-| Renderer | Quakespasm's fixed-function paths on libgl's extensions: two texture units, texture_env_combine (the overbright lightmaps in one pass), no texture_env_add (fullbrights as their own pass), no GLSL. Its RGBA lightmaps are grey: libgl keeps them as 8-bit brightness. `r_oldwater 1`: the liquids are warped per vertex (0 draws them into textures every frame with `glCopyTexSubImage2D`, a read back of the frame from GS memory on libgl, black with beam racing). No gamma on the GS: the picture is at gamma 1 |
+| Renderer | Quakespasm's fixed-function paths on libgl's extensions: two texture units, texture_env_combine (the models' overbright), no texture_env_add (fullbrights as their own pass), no GLSL; the world in two passes (below). Its RGBA lightmaps are grey: libgl keeps them as 8-bit brightness. `r_oldwater 1`: the liquids are warped per vertex (0 draws them into textures every frame with `glCopyTexSubImage2D`, a read back of the frame from GS memory on libgl, black with beam racing). No gamma on the GS: the picture is at gamma 1 |
 | Video | `ps2/vid_ps2.c`: the TV's mode (NTSC 640 x 448, PAL 640 x 512) or 1080i (`vid_mode 1`), beam racing (`vid_beam`), 24-bit colour (`vid_rgb24`), set in Options, Video Options; `gl_ps2texquality`, `gl_ps2texlimits` (libgl's texture quality under memory pressure) |
 | Input | `ps2/in_ps2.c`: pad 0 as Quakespasm's game controller (cross A, circle B, square X, triangle Y, L1/R1 the shoulders, L2/R2 the triggers, L3/R3 the sticks, START escape, SELECT tab); the left stick moves, the right one turns (`joy_*`) |
 | Sound | `ps2/snd_ps2.c`: the mixer at 11025 Hz (`-mixspeed`; the sounds are 11025 Hz) into maxsdk's PCM stream (audsrv); music: WAV only |
@@ -41,6 +41,11 @@ clock jumps ahead, so that code seems slow. The PS2's changes to the engine, eac
 
 - `Quake/r_alias.c`: a model's strips and fans lerped and shaded into arrays, one draw
   (`glMultiModeDrawArraysIBM`), not four GL calls a vertex.
+- `Quake/r_world.c`, `Quake/r_brush.c`: the world as GLQuake draws it (case 3: the textures,
+  then the lightmaps grouped by lightmap with the 2x blend), each polygon one
+  `glDrawArrays (GL_POLYGON)`; libgl draws a second texture unit as a second pass anyway.
+- `Quake/q_stdinc.h`, `Quake/common.h`: `double` is `float` in the engine (the FPU has no
+  doubles; the protocol sends times as floats).
 
 `ps2/include/SDL.h` stands in for SDL's headers: the GL headers are libgl's, and `SDL_RWops`
 (the localization file) is stdio.
