@@ -36,6 +36,9 @@ typedef struct sfx_s
 {
 	char	name[MAX_QPATH];
 	cache_user_t	cache;
+#ifdef __PS2__
+	void	*ps2;		/* PS2: the sound in SPU RAM (ps2/snd_ps2.c), or NULL */
+#endif
 } sfx_t;
 
 /* !!! if this is changed, it must be changed in asm_i386.h too !!! */
@@ -75,6 +78,9 @@ typedef struct
 	vec3_t	origin;			/* origin of sound effect			*/
 	vec_t	dist_mult;		/* distance multiplier (attenuation/clipK)	*/
 	int	master_vol;		/* 0-255 master volume				*/
+#ifdef __PS2__
+	int	ps2_start;		/* PS2: a new number at each start (ps2/snd_ps2.c) */
+#endif
 } channel_t;
 
 #define WAV_FORMAT_PCM	1
@@ -159,6 +165,13 @@ extern	channel_t	snd_channels[MAX_CHANNELS];
 extern	volatile dma_t	*shm;
 
 extern	int		total_channels;
+#ifdef __PS2__
+/* PS2: the channels play on the SPU2's voices (ps2/snd_ps2.c), not mixed
+   here: their positions still go on (the ends, the loops) */
+extern	qboolean	snd_ps2_voices;
+extern	int		snd_ps2_starts;
+void PS2_SoundLoaded (sfx_t *s, const byte *data, const wavinfo_t *info);
+#endif
 extern	int		soundtime;
 extern	int		paintedtime;
 extern	int		s_rawend;

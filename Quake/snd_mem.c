@@ -124,6 +124,10 @@ sfxcache_t *S_LoadSound (sfx_t *s)
 	}
 
 	info = GetWavinfo (s->name, data, com_filesize);
+#ifdef __PS2__
+	if (snd_ps2_voices && info.channels == 1 && (info.width == 1 || info.width == 2) && info.samples)
+		PS2_SoundLoaded (s, data + info.dataofs, &info);
+#endif
 	if (info.channels != 1)
 	{
 		Con_Printf ("%s is a stereo sample\n",s->name);

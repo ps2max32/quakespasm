@@ -267,6 +267,9 @@ int main(int argc, char **argv)
 				mx_prof_start(2000); /* PROF=1: the profile of the timedemo */
 #endif
 			} else if (!cls.timedemo && in_timedemo) {
+				void PS2_SoundReport(void);
+				if (snd_ps2_voices)
+					PS2_SoundReport();
 #if PS2_PROF
 				mx_prof_stop();
 				mx_prof_report(4000);

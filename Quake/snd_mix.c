@@ -377,6 +377,11 @@ void S_PaintChannels (int endtime)
 				{
 					// the last param to SND_PaintChannelFrom is the index
 					// to start painting to in the paintbuffer, usually 0.
+#ifdef __PS2__
+					if (snd_ps2_voices)	/* on the SPU2's voices: the position only */
+						ch->pos += count;
+					else
+#endif
 					if (sc->width == 1)
 						SND_PaintChannelFrom8(ch, sc, count, ltime - paintedtime);
 					else

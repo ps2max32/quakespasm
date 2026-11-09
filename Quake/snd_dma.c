@@ -484,6 +484,9 @@ void S_StartSound (int entnum, int entchannel, sfx_t *sfx, vec3_t origin, float 
 	target_chan->sfx = sfx;
 	target_chan->pos = 0.0;
 	target_chan->end = paintedtime + sc->length;
+#ifdef __PS2__
+	target_chan->ps2_start = ++snd_ps2_starts;
+#endif
 
 // if an identical sound has also been started this frame, offset the pos
 // a bit to keep it from just making the first one louder
@@ -615,6 +618,9 @@ void S_StaticSound (sfx_t *sfx, vec3_t origin, float vol, float attenuation)
 	ss->master_vol = (int)vol;
 	ss->dist_mult = (attenuation / 64) / sound_nominal_clip_dist;
 	ss->end = paintedtime + sc->length;
+#ifdef __PS2__
+	ss->ps2_start = ++snd_ps2_starts;
+#endif
 
 	SND_Spatialize (ss);
 }
