@@ -6,12 +6,19 @@ OpenGL on the GS). `ps2/` replaces the SDL platform layer.
 ```
 make [FRAMES=n] [FIXEDFPS=n] [ARGS="+map e1m1"]   $(OUT)/quakespasm.elf (build/apps/quakespasm)
 make run                                          the same in PCSX2 (game data in build/pcsx2-test/id1)
+make -C pc [FRAMES=n] [ARGS=...] run              the same engine on the PC's OpenGL (below)
 ```
 
 `FRAMES=n` ends the program after n drawn frames with a picture (`host:quakespasm.tga`);
 `FIXEDFPS=n` makes the game's time 1/n s a frame (the same picture at the same frame, whatever
 the speed); `ARGS` adds to the command line. `quakespasm.pak` (Quakespasm's own `default.cfg`,
 with the controller bindings) goes next to the ELF.
+
+`pc/` builds the same sources for the PC, drawn off screen through EGL (Mesa's llvmpipe), with
+the PS2 build's GL paths (two texture units, texture_env_combine, no texture_env_add, no GLSL,
+textures up to 256), screen (640 x 512) and command line, time 1/50 s a frame. Its
+`quakespasm-pc.tga` and the PS2 build's `quakespasm.tga` (with `FIXEDFPS=50`) at the same
+`FRAMES` and `ARGS` show the same frame: what differs is libgl's.
 
 | | |
 |---|---|
