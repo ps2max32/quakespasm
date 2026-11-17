@@ -257,7 +257,7 @@ static void VID_ApplyMode(void)
 	vid.recalc_refdef = 1;
 	modestate = MS_FULLSCREEN;
 	flags = mxgl_mode_flags();
-	Con_SafePrintf("Video mode %dx%d (%s)%s%s\n", w, h, hd ? "1080i" : mxgl_mode() == MXGL_PAL ? "PAL" : "NTSC",
+	Con_SafePrintf("Video mode %dx%d (%s)%s%s\n", w, h, mxgl_mode_name(),
 	               flags & MXGL_BEAM ? ", beam racing" : "", flags & MXGL_RGB24 ? ", 24-bit colour" : "");
 }
 
