@@ -29,7 +29,7 @@ include $(MXGL)/mk/mxgl.mk
 MX_MEMORY ?= vm
 include $(MAXSDK)/mk/maxsdk.mk
 # in VM: the game in VM, libgl in core
-MX_CORE_OBJS = $(MXGL_OBJS)
+MX_FAST_OBJS = $(MXGL_OBJS)
 
 PICOLIBC ?= $(PS2MAX)/build/libs/picolibc/install
 LIBC_LIBS = $(MAXSDK_OUT)/libc/glue.c.o $(MAXSDK_OUT)/libmxc.a $(PICOLIBC)/lib/libc.a \
